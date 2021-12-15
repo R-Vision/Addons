@@ -7,6 +7,6 @@ v_rbuilder_incidents.sql - представления для упрощения 
 
 Установка: на сервере БД выполнить команду
 
-```psql -h localhost -U rvision rvison < v_rbuilder_incidents.sql```
+```psql -h localhost -U rvision rvision < v_rbuilder_incidents.sql```
 
 Совместимые версии: 4.5.х
