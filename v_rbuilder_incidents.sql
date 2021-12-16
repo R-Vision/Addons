@@ -268,21 +268,21 @@ GRANT SELECT
     ON TABLE public.v_rbuilder_im_incidents_organizations TO rvision_read_only;--Загружается только вместе
     --Функция для извлечения даты из im_incident
     CREATE
-    OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_incident(text, text, integer) RETURNS timestamp LANGUAGE plpgsql AS $ function $ #print_strict_params on
+    OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_incident(text, text, integer) RETURNS timestamp LANGUAGE plpgsql AS $function$ #print_strict_params on
     DECLARE startdate timestamp;BEGIN execute format(
         'SELECT %I' ' FROM %I WHERE id = %s',
         $ 1,
         $ 2,
         $ 3
-    ) INTO STRICT startdate;RETURN startdate;END;$ function $;--Функция для извлечения даты из всех остальных таблиц
+    ) INTO STRICT startdate;RETURN startdate;END;$function$;--Функция для извлечения даты из всех остальных таблиц
     CREATE
-    OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text, integer) RETURNS timestamp LANGUAGE plpgsql AS $ function $ #print_strict_params on
+    OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text, integer) RETURNS timestamp LANGUAGE plpgsql AS $function$ #print_strict_params on
     DECLARE startdate timestamp;BEGIN execute format(
         'SELECT value' ' FROM %I WHERE incident_id = %s and field_id = %s',
         $ 2,
         $ 3,
         $ 1
-    ) INTO STRICT startdate;RETURN startdate;END;$ function $;--А теперь сама вьюшка
+    ) INTO STRICT startdate;RETURN startdate;END;$function$;--А теперь сама вьюшка
     CREATE
     OR REPLACE VIEW public.v_rbuilder_im_incidents_timecounters AS with fields as (
         SELECT
