@@ -266,16 +266,16 @@ CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_incident(text, text,
     DECLARE startdate timestamp;
     BEGIN 
         execute format(
-        'SELECT %I' ' FROM %I WHERE id = %s',
-        $ 1,
-        $ 2,
-        $ 3
+        'SELECT %I'
+        ' FROM %I WHERE id = %s',
+        $1,
+        $2,
+        $3
     ) 
     INTO STRICT startdate;
     RETURN startdate;
     END;
-    $function$
-    ;
+    $function$;
 --Функция для извлечения даты из всех остальных таблиц
 CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text, integer) 
     RETURNS timestamp 
@@ -285,10 +285,11 @@ CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text,
     DECLARE startdate timestamp;
     BEGIN 
         execute format(
-        'SELECT value' ' FROM %I WHERE incident_id = %s and field_id = %s',
-        $ 2,
-        $ 3,
-        $ 1
+        'SELECT value'
+        ' FROM %I WHERE incident_id = %s and field_id = %s',
+        $2,
+        $3,
+        $1
     ) 
     INTO STRICT startdate;
     RETURN startdate;
