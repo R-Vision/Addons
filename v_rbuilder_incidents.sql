@@ -1,5 +1,4 @@
-CREATE
-OR REPLACE VIEW public.v_rbuilder_im_incidents AS
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents AS
 SELECT
     im_incident.id,
     (
@@ -80,9 +79,8 @@ SELECT
     im_incident.archived
 FROM
     im_incident;
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents TO rvision_read_only;CREATE
-    OR REPLACE VIEW public.v_rbuilder_im_incidents_field_values AS
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents TO rvision_read_only;
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_field_values AS
 SELECT
     im_fields_values_only_inc_field.incident_id,
     im_fields_only_label_catalog_type.label as "field_label",
@@ -118,9 +116,8 @@ FROM
     ) as im_fields_only_label_catalog_type on im_fields_values_only_inc_field.field_id = im_fields_only_label_catalog_type.id
 WHERE
     im_fields_only_label_catalog_type."type" not in ('timecounter', 'usertagfield');
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents_field_values TO rvision_read_only;CREATE
-    OR REPLACE VIEW public.v_rbuilder_im_incidents_user_field_values AS
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_field_values TO rvision_read_only;
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_user_field_values AS
 SELECT
     im_user_fields_values_only_inc_field_user.incident_id,
     im_fields_only_label_catalog_type.label as "field_label",
@@ -151,9 +148,8 @@ FROM
         FROM
             im_fields
     ) as im_fields_only_label_catalog_type on im_user_fields_values_only_inc_field_user.field_id = im_fields_only_label_catalog_type.id;
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents_user_field_values TO rvision_read_only;CREATE
-    OR REPLACE VIEW public.v_rbuilder_im_incidents_devices AS
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_user_field_values TO rvision_read_only;
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_devices AS
 SELECT
     im_incident_device.incident_id,
     im_incident_device.type as "device_type",
@@ -169,9 +165,8 @@ SELECT
 FROM
     im_incident_device
     left join am_devices_ifs_ips on am_devices_ifs_ips.devices_id = im_incident_device.device_id;
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents_devices TO rvision_read_only;CREATE
-    OR REPLACE VIEW public.v_rbuilder_im_incidents_disturbers AS
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_devices TO rvision_read_only;
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_disturbers AS
 SELECT
     im_incident_disturber.incident_id,
     im_incident_disturber.type as "disterber_type",
@@ -193,9 +188,8 @@ SELECT
     ) as "disterber"
 FROM
     im_incident_disturber;
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents_disturbers TO rvision_read_only;CREATE
-    OR REPLACE VIEW public.v_rbuilder_im_incidents_processes AS
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_disturbers TO rvision_read_only;
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_processes AS
 SELECT
     im_incident_processes.incident_id,
     (
@@ -208,9 +202,8 @@ SELECT
     ) as "process"
 FROM
     im_incident_processes;
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents_processes TO rvision_read_only;CREATE
-    OR REPLACE VIEW public.v_rbuilder_im_incidents_assets AS
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_processes TO rvision_read_only;
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_assets AS
 SELECT
     im_incidents_assets.incident_id,
     (
@@ -223,10 +216,9 @@ SELECT
     ) as "asset"
 FROM
     im_incidents_assets;
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents_assets TO rvision_read_only;--Подумать над custom_assets
-    CREATE
-    OR REPLACE VIEW public.v_rbuilder_im_incidents_informations AS
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_assets TO rvision_read_only;
+--Подумать над custom_assets
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_informations AS
 SELECT
     im_incidents_information.incident_id,
     (
@@ -248,10 +240,9 @@ SELECT
     ) as "information"
 FROM
     im_incidents_information;
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents_informations TO rvision_read_only;--Подумать над локациями
-    CREATE
-    OR REPLACE VIEW public.v_rbuilder_im_incidents_organizations AS
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_informations TO rvision_read_only;
+--Подумать над локациями
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_organizations AS
 SELECT
     im_incidents_organizations.incident_id,
     (
@@ -264,113 +255,135 @@ SELECT
     ) as "organization"
 FROM
     im_incidents_organizations;
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents_organizations TO rvision_read_only;--Загружается только вместе
-    --Функция для извлечения даты из im_incident
-    CREATE
-    OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_incident(text, text, integer) RETURNS timestamp LANGUAGE plpgsql AS $function$ #print_strict_params on
-    DECLARE startdate timestamp;BEGIN execute format(
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_organizations TO rvision_read_only;
+--Загружается только вместе
+--Функция для извлечения даты из im_incident
+CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_incident(text, text, integer) 
+    RETURNS timestamp 
+    LANGUAGE plpgsql 
+    AS $function$ 
+    #print_strict_params on
+    DECLARE startdate timestamp;
+    BEGIN 
+        execute format(
         'SELECT %I' ' FROM %I WHERE id = %s',
         $ 1,
         $ 2,
         $ 3
-    ) INTO STRICT startdate;RETURN startdate;END;$function$;--Функция для извлечения даты из всех остальных таблиц
-    CREATE
-    OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text, integer) RETURNS timestamp LANGUAGE plpgsql AS $function$ #print_strict_params on
-    DECLARE startdate timestamp;BEGIN execute format(
+    ) 
+    INTO STRICT startdate;
+    RETURN startdate;
+    END;
+    $function$
+    ;
+--Функция для извлечения даты из всех остальных таблиц
+CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text, integer) 
+    RETURNS timestamp 
+    LANGUAGE plpgsql 
+    AS $function$ 
+    #print_strict_params on
+    DECLARE startdate timestamp;
+    BEGIN 
+        execute format(
         'SELECT value' ' FROM %I WHERE incident_id = %s and field_id = %s',
         $ 2,
         $ 3,
         $ 1
-    ) INTO STRICT startdate;RETURN startdate;END;$function$;--А теперь сама вьюшка
-    CREATE
-    OR REPLACE VIEW public.v_rbuilder_im_incidents_timecounters AS with fields as (
-        SELECT
-            id,
-            field_id_time_counter_start
-        FROM
-            im_fields
-        WHERE
-            "type" = 'timecounter'
-    ),
-    inc_types as (
-        SELECT
-            im_incident.id as "incident_id",
-            fields.id as "field_id",
-            fields.field_id_time_counter_start
-        FROM
-            im_catalog_types_fields
-            inner join fields on im_catalog_types_fields.field_id = fields.id
-            inner join im_incident on im_incident.incident_type_id = im_catalog_types_fields.type_id
-    ),
-    inc_categories as (
-        SELECT
-            im_incident.id as "incident_id",
-            fields.id as "field_id",
-            fields.field_id_time_counter_start
-        FROM
-            im_categories_fields
-            inner join fields on im_categories_fields.field_id = fields.id
-            inner join im_incident on im_incident.category_id = im_categories_fields.category_id
-    ),
-    inc_with_counters as (
-        SELECT
-            *
-        FROM
-            inc_types
-        union
-        SELECT
-            *
-        FROM
-            inc_categories
-    ),
-    inc_all as (
-        SELECT
-            inc_with_counters.incident_id,
-            im_fields_only_label_catalog_type."label",
-            case when (
-                (
-                    im_fields_values_only_inc_field.value :: json ->> 'start'
-                ) :: timestamp is null
-                and (
-                    SELECT
-                        stores_value_table
-                    FROM
-                        im_fields
-                    WHERE
-                        id = inc_with_counters.field_id_time_counter_start
-                ) :: text = 'im_incident'
-            ) then v_rbuilder_get_startdate_FROM_im_incident(
-                (
-                    SELECT
-                        "name"
-                    FROM
-                        im_fields
-                    WHERE
-                        id = inc_with_counters.field_id_time_counter_start
-                ) :: text,
-                (
-                    SELECT
-                        stores_value_table
-                    FROM
-                        im_fields
-                    WHERE
-                        id = inc_with_counters.field_id_time_counter_start
-                ) :: text,
-                inc_with_counters.incident_id
+    ) 
+    INTO STRICT startdate;
+    RETURN startdate;
+    END;
+    $function$
+    ;
+--А теперь сама вьюшка
+CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_timecounters AS 
+with fields as (
+    SELECT
+        id,
+        field_id_time_counter_start
+    FROM
+        im_fields
+    WHERE
+        "type" = 'timecounter'
+),
+inc_types as (
+    SELECT
+        im_incident.id as "incident_id",
+        fields.id as "field_id",
+        fields.field_id_time_counter_start
+    FROM
+        im_catalog_types_fields
+        inner join fields on im_catalog_types_fields.field_id = fields.id
+        inner join im_incident on im_incident.incident_type_id = im_catalog_types_fields.type_id
+),
+inc_categories as (
+    SELECT
+        im_incident.id as "incident_id",
+        fields.id as "field_id",
+        fields.field_id_time_counter_start
+    FROM
+        im_categories_fields
+        inner join fields on im_categories_fields.field_id = fields.id
+        inner join im_incident on im_incident.category_id = im_categories_fields.category_id
+),
+inc_with_counters as (
+    SELECT
+        *
+    FROM
+        inc_types
+    union
+    SELECT
+        *
+    FROM
+        inc_categories
+),
+inc_all as (
+SELECT
+    inc_with_counters.incident_id,
+        im_fields_only_label_catalog_type."label",
+        case when (
+            (
+                im_fields_values_only_inc_field.value :: json ->> 'start'
+            ) :: timestamp is null
+            and (
+                SELECT
+                    stores_value_table
+                FROM
+                    im_fields
+                WHERE
+                    id = inc_with_counters.field_id_time_counter_start
+            ) :: text = 'im_incident'
+        ) then v_rbuilder_get_startdate_FROM_im_incident(
+            (
+                SELECT
+                    "name"
+                FROM
+                    im_fields
+                WHERE
+                    id = inc_with_counters.field_id_time_counter_start
+            ) :: text,
+            (
+                SELECT
+                    stores_value_table
+                FROM
+                    im_fields
+                WHERE
+                    id = inc_with_counters.field_id_time_counter_start
+            ) :: text,
+            inc_with_counters.incident_id
             ) when (
-                (
-                    im_fields_values_only_inc_field.value :: json ->> 'start'
-                ) :: timestamp is null
-                and (
-                    SELECT
-                        stores_value_table
-                    FROM
-                        im_fields
-                    WHERE
-                        id = inc_with_counters.field_id_time_counter_start
-                ) :: text != 'im_incident'
-            ) then v_rbuilder_get_startdate_FROM_im_other(
+            (
+                im_fields_values_only_inc_field.value :: json ->> 'start'
+            ) :: timestamp is null
+            and (
+                SELECT
+                    stores_value_table
+                FROM
+                    im_fields
+                WHERE
+                    id = inc_with_counters.field_id_time_counter_start
+            ) :: text != 'im_incident'
+            ) then v_rbuilder_get_startdate_FROM_im_other (
                 inc_with_counters.field_id_time_counter_start :: int,
                 (
                     SELECT
@@ -423,5 +436,4 @@ SELECT
     "limit"
 FROM
     inc_all;
-GRANT SELECT
-    ON TABLE public.v_rbuilder_im_incidents_timecounters TO rvision_read_only;
+GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_timecounters TO rvision_read_only;
