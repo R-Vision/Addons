@@ -291,7 +291,7 @@ CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text,
         $3,
         $1
     ) 
-    INTO STRICT startdate;
+    INTO startdate;
     RETURN startdate;
     END;
     $function$
