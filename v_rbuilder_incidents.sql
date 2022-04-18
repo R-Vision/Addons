@@ -83,14 +83,15 @@ GRANT SELECT ON TABLE public.v_rbuilder_im_incidents TO rvision_read_only;
 CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_field_values AS
 SELECT
     im_fields_values_only_inc_field.incident_id,
-    im_fields_only_label_catalog_type.label as "field_label",
-    case when im_fields_only_label_catalog_type.catalog_id is not null then (
+    im_fields_tag_label_catalog_type.label as "field_label",
+    im_fields_tag_label_catalog_type.tag as "field_tag",
+    case when im_fields_tag_label_catalog_type.catalog_id is not null then (
         SELECT
             name
         FROM
             im_catalog_usercatalog
         WHERE
-            catalog_id = im_fields_only_label_catalog_type.catalog_id
+            catalog_id = im_fields_tag_label_catalog_type.catalog_id
             and id = im_fields_values_only_inc_field.value :: int
     ) else im_fields_values_only_inc_field.value end as "value"
 FROM
@@ -109,18 +110,20 @@ FROM
         SELECT
             id,
             "label",
+            tag,
             catalog_id,
             "type"
         FROM
             im_fields
-    ) as im_fields_only_label_catalog_type on im_fields_values_only_inc_field.field_id = im_fields_only_label_catalog_type.id
+    ) as im_fields_tag_label_catalog_type on im_fields_values_only_inc_field.field_id = im_fields_tag_label_catalog_type.id
 WHERE
-    im_fields_only_label_catalog_type."type" not in ('timecounter', 'usertagfield');
+    im_fields_tag_label_catalog_type."type" not in ('timecounter', 'usertagfield');
 GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_field_values TO rvision_read_only;
 CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_user_field_values AS
 SELECT
     im_user_fields_values_only_inc_field_user.incident_id,
-    im_fields_only_label_catalog_type.label as "field_label",
+    im_fields_tag_label_catalog_type.label as "field_label",
+    im_fields_tag_label_catalog_type.tag as "field_tag",
     (
         SELECT
             login
@@ -143,11 +146,12 @@ FROM
         SELECT
             id,
             "label",
+            tag,
             catalog_id,
             "type"
         FROM
             im_fields
-    ) as im_fields_only_label_catalog_type on im_user_fields_values_only_inc_field_user.field_id = im_fields_only_label_catalog_type.id;
+    ) as im_fields_tag_label_catalog_type on im_user_fields_values_only_inc_field_user.field_id = im_fields_tag_label_catalog_type.id;
 GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_user_field_values TO rvision_read_only;
 CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents_devices AS
 SELECT
@@ -275,7 +279,8 @@ CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_incident(text, text,
     INTO STRICT startdate;
     RETURN startdate;
     END;
-    $function$;
+    $function$
+    ;
 --Функция для извлечения даты из всех остальных таблиц
 CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text, integer) 
     RETURNS timestamp 
@@ -285,13 +290,12 @@ CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text,
     DECLARE startdate timestamp;
     BEGIN 
         execute format(
-        'SELECT value'
+        'SELECT value' 
         ' FROM %I WHERE incident_id = %s and field_id = %s',
         $2,
         $3,
         $1
     ) 
-    INTO startdate;
     RETURN startdate;
     END;
     $function$
@@ -341,7 +345,8 @@ inc_with_counters as (
 inc_all as (
 SELECT
     inc_with_counters.incident_id,
-        im_fields_only_label_catalog_type."label",
+        im_fields_tag_label_catalog_type."label",
+        im_fields_tag_label_catalog_type."tag",
         case when (
             (
                 im_fields_values_only_inc_field.value :: json ->> 'start'
@@ -403,7 +408,7 @@ SELECT
             ) :: timestamp is null then now() else (
                 im_fields_values_only_inc_field.value :: json ->> 'stop'
             ) :: timestamp end as "stop_date",
-            im_fields_only_label_catalog_type.time_counter_limit as "limit"
+            im_fields_tag_label_catalog_type.time_counter_limit as "limit"
         FROM
             inc_with_counters
             left join (
@@ -423,10 +428,11 @@ SELECT
                     id,
                     manual_time_counter_start,
                     "label",
+                    tag,
                     time_counter_limit
                 FROM
                     im_fields
-            ) as im_fields_only_label_catalog_type on im_fields_only_label_catalog_type.id = inc_with_counters.field_id
+            ) as im_fields_tag_label_catalog_type on im_fields_tag_label_catalog_type.id = inc_with_counters.field_id
     )
 SELECT
     incident_id,
