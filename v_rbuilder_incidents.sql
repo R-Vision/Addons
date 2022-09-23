@@ -1,3 +1,14 @@
+DROP VIEW v_rbuilder_im_incidents;
+DROP VIEW v_rbuilder_im_incidents_assets;
+DROP VIEW v_rbuilder_im_incidents_devices;
+DROP VIEW v_rbuilder_im_incidents_disturbers;
+DROP VIEW v_rbuilder_im_incidents_field_values;
+DROP VIEW v_rbuilder_im_incidents_informations;
+DROP VIEW v_rbuilder_im_incidents_organizations;
+DROP VIEW v_rbuilder_im_incidents_processes;
+DROP VIEW v_rbuilder_im_incidents_timecounters;
+DROP VIEW v_rbuilder_im_incidents_user_field_values;
+
 CREATE OR REPLACE VIEW public.v_rbuilder_im_incidents AS
 SELECT
     im_incident.id,
@@ -279,8 +290,7 @@ CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_incident(text, text,
     INTO STRICT startdate;
     RETURN startdate;
     END;
-    $function$
-    ;
+    $function$;
 --Функция для извлечения даты из всех остальных таблиц
 CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text, integer) 
     RETURNS timestamp 
@@ -290,12 +300,13 @@ CREATE OR REPLACE FUNCTION v_rbuilder_get_startdate_FROM_im_other(integer, text,
     DECLARE startdate timestamp;
     BEGIN 
         execute format(
-        'SELECT value' 
+        'SELECT value'
         ' FROM %I WHERE incident_id = %s and field_id = %s',
         $2,
         $3,
         $1
     ) 
+    INTO startdate;
     RETURN startdate;
     END;
     $function$
@@ -408,7 +419,8 @@ SELECT
             ) :: timestamp is null then now() else (
                 im_fields_values_only_inc_field.value :: json ->> 'stop'
             ) :: timestamp end as "stop_date",
-            im_fields_tag_label_catalog_type.time_counter_limit as "limit"
+            im_fields_tag_label_catalog_type.time_counter_limit as "limit",
+            im_fields_values_only_inc_field.value :: json ->> 'limit' as "response_limit"
         FROM
             inc_with_counters
             left join (
@@ -440,7 +452,8 @@ SELECT
     (
         date_part('epoch', stop_date - start_date) * interval '1 second'
     ) :: interval(0) as "value",
-    "limit"
+    "limit",
+    to_char(interval response_limit,'DD HH24:MI')::interval(0) as "response_limit"
 FROM
     inc_all;
 GRANT SELECT ON TABLE public.v_rbuilder_im_incidents_timecounters TO rvision_read_only;
